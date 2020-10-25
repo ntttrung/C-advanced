@@ -1,9 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-#include "jval.h"
 
-#define MAX_NUMBER 1000000
+#define MAX_NUMBER 100000000
 
 void exch(int a[], int i , int j);
 int* createArray(int n);
@@ -13,20 +12,24 @@ void quicksort_2_way(int a[], int l, int r) ;
 void quicksort_3_way(int a[], int l, int r) ;
 
 
-int int_compare(Jval* x, Jval* y)
+int int_compare(void const* x, void const* y)
 	{
-		if (jval_i(*x) == jval_i(*y)) return 0;
-		if (jval_i(*x) < jval_i(*y)) return -1;
-		return 1;
+		int m,n;
+		m = *((int*)x);
+		n = *((int*)y);
+		if(m==n) return 0;
+		return m > n ? 1: -1;
 	}
 
-Jval* createArray(int n)
+int* createArray(int n)
 {
 	
-	Jval *p= (Jval*)malloc(sizeof(Jval)*n);
+	int *p= (int*)malloc(sizeof(int)*n);
 	int i;
 	for(i=0; i<n ; i++)
-		p[i] = new_jval_i( rand());
+	
+		*(p+i) = rand() % 10;
+	
 	return p;
 }
 
@@ -75,18 +78,27 @@ void exch(int a[], int i , int j)
 	a[j]= temp;
 }
 
+void exch_gen(void * buf, int size, int i, int j)
+	{
+		char buffer[size];
+		memcpy(buffer,(char *) buf + i*size, size);
+		memcpy((char *)buf + i*size, buf + j*size, size);
+		memcpy((char *)buf + j*size, buffer, size);
+	}
 
-void quicksort_3_way(int a[], int l, int r) {
+
+void quicksort_3_way( void* a, int size,int l, int r, int (*compare)(void*, void*)) {
     if (r <= l) return;
     int p = l, i = l + 1, q = r;
-    int v = a[l];
+	void * v = (char*)(a + (l*size));
     while (i <= q) {
-        if (a[i] < v) exch(a, p++, i++);
-        else if (a[i] > v) exch(a, i, q--);
+		void* a_i = (char*)(a + (i*size));
+        if ((*compare)(a_i, v) < 0) exch_gen(a, size, p++, i++);
+        else if ((*compare)(a_i, v)) exch_gen(a, size, i, q--);
         else i++;
     }
-    quicksort_3_way(a, l, p - 1);
-    quicksort_3_way(a, q + 1, r);
+    quicksort_3_way(a, size, l, p - 1);
+    quicksort_3_way(a, size, q + 1, r);
 }
 
 
@@ -106,7 +118,7 @@ int main()
 	printf("Run in %.8f second(s)\n", difftime(end, start)/CLOCKS_PER_SEC);
 
 	start= clock();
-    quicksort_3_way(a1, 0 , MAX_NUMBER -1);
+    quicksort_3_way(a1,sizeof(int), 0 , MAX_NUMBER -1);
 	end = clock();
 	//output(a2,MAX_NUMBER);
 	printf("Run in %.8f second(s)\n", difftime(end, start)/CLOCKS_PER_SEC);
