@@ -1,7 +1,8 @@
+//Pham Thanh Dat
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include "jval.h"
+#include "../Libfdr/jval.h"
 
 void output(Jval buf[],size_t size, int n){
     int i;
@@ -10,7 +11,7 @@ void output(Jval buf[],size_t size, int n){
             printf("%d ",buf[i].i);
         }
         else if (size == sizeof(long)){
-            printf("%ld ",buf[i].l);
+            printf("%ld ",buf[i]);
         }
     printf("\n");
 }
@@ -35,10 +36,11 @@ int search(
 }
 
 int int_compare(Jval *x,Jval *y){
-    int m = x->i;
-    int n = y->i;
-    if(m==n) return 0;
-    return m > n ? 1:-1;
+    Jval *m,*n;
+    m=x;
+    n=y;
+    if (m->i==n->c) return 0;
+    return m->i>n->i ? 1:-1;
 }
 
 void int_swap(Jval buf[],size_t size,int i,int j){

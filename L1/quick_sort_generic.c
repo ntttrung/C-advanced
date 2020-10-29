@@ -1,31 +1,30 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include "jval.h"
 
-void output(Jval buf[],size_t size, int n){
+void output(void *buf,size_t size, int n){
     int i;
     for (i=0; i<n; i++)
         if (size == sizeof(int)){
-            printf("%d ",buf[i].i);
+            printf("%d ",*((int*)buf + i));
         }
         else if (size == sizeof(long)){
-            printf("%ld ",buf[i].l);
+            printf("%ld ",*((long*)buf + i));
         }
     printf("\n");
 }
 
 int search(
-           Jval *buf,
+           void *buf,
            int size_of_item,
            int l, int r,
-           Jval *item,
-           int (*compare)(Jval*,Jval*)
+           void *item,
+           int (*compare)(void const*,void const*)
            ){
     int mid,res;
     if (r<l) return -1;
     mid=(l+r)/2;
-    res=compare(item,&buf[mid]);
+    res=compare(item,(char *)buf+size_of_item*mid);
     if (res==0)
         return mid;
     else if (res<0)
@@ -34,35 +33,36 @@ int search(
         return search(buf, size_of_item, mid+1, r, item, compare);
 }
 
-int int_compare(Jval *x,Jval *y){
-    int m = x->i;
-    int n = y->i;
-    if(m==n) return 0;
-    return m > n ? 1:-1;
+int int_compare(void const *x,void const *y){
+    int m,n;
+    m=*((int *)x);
+    n=*((int *)y);
+    if (m==n) return 0;
+    return m>n ? 1:-1;
 }
 
-void int_swap(Jval buf[],size_t size,int i,int j){
-    Jval cmp = buf[i];
-    buf[i]= buf[j];
-    buf[j] = cmp;
+void int_swap(void *buf,size_t size,int i,int j){
+    int cmp=*((char*)buf+size*i);
+    *((char*)buf+size*i)=*((char*)buf+size*j);
+    *((char*)buf+size*j)=cmp;
 }
 
-void qsort_3way(Jval buf[], int l, int r, size_t size, int (*compare)(Jval*,Jval*), void (*swap)(Jval*, size_t, int, int)){
+void qsort_3way(void* buf, int l, int r, size_t size, int (*compare)(void const*,void const*), void (*swap)(void*, size_t, int, int)){
     if(l>=r) return;
     int i=l-1,j=r;
     int p=l-1,q=r;
     
     while(1)
     {
-        while(compare( &buf[++i],&buf[r])==-1);
-        while(compare(&buf[--j],&buf[r])==1)
+        while(compare((char*)buf+(++i)*size,(char*)buf+size*r)==-1);
+        while(compare((char*)buf+(--j)*size,(char*)buf+size*r)==1)
         {
             if(j==l) break;
         }
         if(i>=j) break;
         swap(buf,size,i,j);
-        if(compare(&buf[i],&buf[r])==0) swap(buf,size,++p,i);
-        if(compare(&buf[j],&buf[r])==0) swap(buf,size,--q,j);
+        if(compare((char*)buf+i*size,(char*)buf+r*size)==0) swap(buf,size,++p,i);
+        if(compare((char*)buf+j*size,(char*)buf+r*size)==0) swap(buf,size,--q,j);
     }
     
     swap(buf,size,i,r);
@@ -84,17 +84,13 @@ void qsort_3way(Jval buf[], int l, int r, size_t size, int (*compare)(Jval*,Jval
 }
 
 int main(){
-    Jval a[10] = {102, 5, 100, 9, 10, 34, 56, 89, 8, 2};
-    // Jval c,b;
-    // c = new_jval_i(10);
-    // b = new_jval_i(12);
-    // printf("%d\n",int_compare(&c,&b));
+    long a[10]={102, 5, 100, 9, 10, 34, 56, 89, 8, 2};
     output(a, sizeof(long), 10);
     qsort_3way(a, 0, 9, sizeof(long), int_compare, int_swap);
     output(a, sizeof(long), 10);
     
     long res;
-    Jval find = new_jval_l(100);
+    long find = 89;
     printf("Finding element: %ld \n", find);
     res = search(a, sizeof(long), 0, 9, &find, int_compare);
     printf("Position found: %ld \n", res);
