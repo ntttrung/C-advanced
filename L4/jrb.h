@@ -108,6 +108,7 @@ extern int jrb_nblack(JRB n); /* returns # of black nodes in path from
 int jrb_plength(JRB n);       /* returns the # of nodes in path from
 				    n to the root */
  
+
 #define jrb_first(n) (n->flink)
 #define jrb_last(n) (n->blink)
 #define jrb_next(n) (n->flink)
@@ -123,4 +124,6 @@ int jrb_plength(JRB n);       /* returns the # of nodes in path from
 #define jrb_rtraverse(ptr, lst) \
   for(ptr = jrb_last(lst); ptr != jrb_nil(lst); ptr = jrb_prev(ptr))
  
+
+
 #endif
