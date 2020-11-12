@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "jrb.h"
 #include "jval.h"
+#include "queue.h"
 
 typedef JRB Graph;
 
@@ -64,6 +65,21 @@ void print_graph(Graph g){
 // void dropGraph(Graph* g){
 //     free(g);
 // }
+int size_of_graph(Graph g)
+    {
+
+        
+    }
+
+void BFS( Graph g, int start, int stop, void(*func)(int))
+    {
+        Graph node;
+        int *visit;
+        jrb_traverse(node, g)
+            {
+                count
+            }
+    }
 
 int main(){
     Graph g = createGraph();
