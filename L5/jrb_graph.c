@@ -1,107 +1,90 @@
-#include<stdio.h>
-#include<stdlib.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 #include "jrb.h"
 #include "jval.h"
 
-
 typedef JRB Graph;
 
-Graph createGraph()
-    {
-        Graph g = make_jrb();
-        return g;
+Graph createGraph(){
+    Graph g = make_jrb();
+    return g;
+}
+
+void addEdge(Graph g, int v1, int v2){
+    Graph tree;
+    Graph node = jrb_find_int(g, v1);
+    if (node == NULL) {
+        tree = make_jrb(); 
+        jrb_insert_int(g, v1, new_jval_v(tree));
+    } else {
+        tree = (JRB) jval_v(node->val); 
     }
-
-void addEdge(Graph g, int v1, int v2)
-    {
-        /// add v1
-        Graph tree =  make_jrb();
-        Graph node = jrb_find_int(g, v1);
-        if( node == NULL)
-            {
-                // jrb_insert_int(g, v1, new_jval_v(tree));
-                jrb_insert_int(tree, v2, new_jval_i(1));
-                jrb_insert_int(g, v1, new_jval_v(tree));
-            }
-        else 
-            {
-                tree = (JRB) jval_v (node->val);
-                jrb_insert_int(tree, v2, new_jval_i(1));
-            }
-        /// add v2
-        tree =  make_jrb();
-        node = jrb_find_int(g, v2);
-        if( node == NULL)
-            {
-                // jrb_insert_int(g, v2, new_jval_v(tree));
-                jrb_insert_int(tree, v1, new_jval_i(1));
-                jrb_insert_int(g, v2, new_jval_v(tree));
-            }
-        else 
-            {
-                tree = (JRB) jval_v (node->val);
-                jrb_insert_int(tree, v1, new_jval_i(1));
-            }
-
-
+    jrb_insert_int(tree, v2, new_jval_i(1));
+/**/
+    Graph node2 = jrb_find_int(g, v2);
+    Graph tree2;
+    if (node2 == NULL) {
+        tree2 = make_jrb(); 
+        jrb_insert_int(g, v2, new_jval_v(tree2));
+    } else {
+        tree2 = (JRB) jval_v(node2->val); 
     }
+    jrb_insert_int(tree2, v1, new_jval_i(1));
+}
 
-int adjacent(Graph g, int v1, int v2)
-    {
-        Graph node1, node2;
-        node1 = jrb_find_int(g, v1);
-        if(node1 != NULL)
-            {
-                node2 = jrb_find_int((JRB) jval_v(node1->val), v2);
-                if(node2 != NULL)
-                    return 1;
-            }
-        return 0;
-    }
-
-int getAdjacentVertices(Graph g, int v, int* output)
-    {
-        int i, total = 0;
-        Graph node = jrb_find_int(g, v);
+int getAdjacentVertices(Graph g, int v, int* output){
+    Graph node = jrb_find_int(g, v);
+    Graph tmp;
+    if (node == NULL) return -1;
+    else {
         Graph tree = (JRB) jval_v(node->val);
-        jrb_traverse(node, tree)
-            output[total++] = jval_i(node->key);
-        return --total;
-        
+        int total = 0;
+        jrb_traverse(tmp, tree){
+            output[total++] = jval_i(tmp->key);
+        }
+        return total; //number of adjacents of vertex
     }
-void dropGraph(Graph g)
-    {
-        jrb_free_tree(g);
+}
+
+void print_graph(Graph g){
+  Graph i;
+  int size;
+  jrb_traverse(i, g){
+    printf("Key %d: [", jval_i(i->key));
+    int output[10];
+    size = getAdjacentVertices(g, jval_i(i->key), output);
+    int i;
+    for ( i = 0; i < size; i++){
+        printf("%d ", output[i]);
     }
+    printf("]\n");
+  }
+}
 
-void print_graph(Graph g)
-    {
-        Graph node;
-        jrb_traverse(node, g);
-            {
-                if(node != NULL)
-                    {
-                        int output[11];
-                        int res = getAdjacentVertices(g, jval_i(node->key), output);
-                        printf("%d: ",jval_i(node->key));
-                        int i;
-                        for(i=0; i < res; i++)
-                            {
-                                printf("%d ", output[i]);
-                            }
-                        printf("\n");
-                    }
-            }
-    }
+// void dropGraph(Graph* g){
+//     free(g);
+// }
 
-int main()
-    {
-        Graph g = createGraph();
-        addEdge(g, 1, 2);
-        addEdge(g, 2, 3);
-        addEdge(g, 5, 10);
-        print_graph(g);
-    }
+int main(){
+    Graph g = createGraph();
 
+    addEdge(g, 0, 1);
+    addEdge(g, 0, 2);
+    addEdge(g, 7, 8);
+    addEdge(g, 7, 1);
+    addEdge(g, 3, 5);
+    addEdge(g, 2, 5);
 
+    print_graph(g);
+
+    // int output[10];
+    // int v = 5;
+    // int res = getAdjacentVertices(g, v, output);
+    // if (res == 0) printf("No adjacent.");
+    // else {
+    //     printf("List of adjacents of %d: ", v);
+    //     for(int i = 0; i < res; i++)
+    //     printf("%d ", output[i]);
+    // }
+    // dropGraph(&g);
+}
