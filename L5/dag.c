@@ -90,50 +90,56 @@ int getAdjacentVertices(Graph graph, int v, int* output){
 void print_graph(Graph graph){
     JRB g = graph.edges;
     JRB i;
-    int size;
+    int size,j;
     jrb_traverse(i, g){
     printf("Key %s: [", getVertex(graph, jval_i(i->key)));
     int output[10];
     size = getAdjacentVertices(graph, jval_i(i->key), output);
-    for (int j = 0; j < size; j++){
+    for (j = 0; j < size; j++){
         printf("%s ", getVertex(graph, output[j]));
     }
     printf("]\n");
   }
 }
 
-int indegree(Graph graph, int v, int* output){
+int indegree(Graph graph, int v, int* out){
+    int output[100];
     JRB g = graph.edges;
     JRB i;
-    int size;
-    printf("In degree of %s: [", getVertex(graph, v));
+    int size,j;
+    int count = 0;
+    // printf("In degree of %s: [", getVertex(graph, v));
     jrb_traverse(i, g){
     int output[10];
     size = getAdjacentVertices(graph, jval_i(i->key), output);
-    for (int j = 0; j < size; j++){
-        if (output[j] == v) printf("%s ", getVertex(graph, jval_i(i->key)));
+    for (j = 0; j < size; j++){
+        if (output[j] == v){
+            // printf("%s ", getVertex(graph, jval_i(i->key)));
+            out[count++] = jval_i(i->key);
+        }
     }
   }
-  printf("]\n");
+//   printf("]\n");
+  return count;
 }
 
-int outdegree(Graph graph, int v, int* output){
+int outdegree(Graph graph, int v, int* out){
     JRB g = graph.edges;
     JRB i;
-    int size;
+    int size,j;
     i = jrb_find_int(g, v);
     if (i == NULL) {
-        printf("No out degree of %s.", getVertex(graph, v));
-        return -1;
+        // printf("No out degree of %s.", getVertex(graph, v));
+        return 0;
     }
     else {
-    printf("Out degree of %s: ", getVertex(graph, jval_i(i->key)));
+    // printf("Out degree of %s: ", getVertex(graph, jval_i(i->key)));
     int output[10];
     size = getAdjacentVertices(graph, v, output);
-    for (int j = 0; j < size; j++){
-        printf("%s ", getVertex(graph, output[j]));
+    for (j = 0; j < size; j++){
+        out[j] = output[j];
     }
-    printf("\n");
+    // printf("\n");
     return size;
     }  
 }
@@ -143,7 +149,7 @@ void DFS(Graph g, int start, int stop, void (*func)(int)){
     JRB graph = g.edges;
     Dllist stack, node;
     stack = new_dllist();
-    int visited[100], Adj[100], current, size;
+    int visited[100], Adj[100], current, size, i;
     memset(visited, 0, 100);
     dll_append(stack, new_jval_i(start));
     while (!dll_empty(stack)) {
@@ -155,7 +161,7 @@ void DFS(Graph g, int start, int stop, void (*func)(int)){
             visited[current] = 1;
             if (current == stop) break;
             size = getAdjacentVertices(g, current, Adj);
-            for (int i = 0; i < size; i++){
+            for (i = 0; i < size; i++){
                 if(!visited[Adj[i]])
                     dll_append(stack, new_jval_i(Adj[i]));
                 }
@@ -189,10 +195,10 @@ void processDFSTree(Graph g, Dllist stack, int* visited) {
     int current;
     node = dll_last(stack);
     current = jval_i(node->val);
-    int adjacent[100];
+    int adjacent[100], i;
     int size, v;
     size = getAdjacentVertices(g, current, adjacent);
-    for(int i = 0; i < size; i++) {
+    for(i = 0; i < size; i++) {
         v = adjacent[i];
         if (visited[v] == -1) {
             printCycle(stack, v);
@@ -214,10 +220,10 @@ void findCycles(Graph g) {
     JRB i;
     Dllist stack;
     int v;
+    stack = new_dllist();
     jrb_traverse(i, g.vertices) {
         v = jval_i(i->key);
         if (!visited[v]) {
-            stack = new_dllist();
             dll_append(stack, new_jval_i(v));
             visited[v] = -1;
             processDFSTree(g, stack, visited);
@@ -225,29 +231,40 @@ void findCycles(Graph g) {
     }
 }
 
-
-void topologicalSort(Graph g, int* output, int* n)
-    {
-        Dllist q;
-        JRB v;
-        int* out;
-        q = new_dllist();
-        jrb_traverse(v, g.vertices)
-            {
-                if(indegree(g, jval_i(v->key), out) == 0)
-                    dll_append(q, v->key);
-            }
-        int adjacent[100];
-        int size;
-        while(dll_empty(q) != 0)
-            {
-                v = dll_first(q);
-                printf("%d ", jval_i(v->val));
-                size = getAdjacentVertices(g, jval_i(v->val), adjacent);
-                getAdjacentVertices()
-                dll_delete_node(v)
-            }
+void topologicalSort(Graph g, int* output, int* n){
+    int indegree1[100];
+    JRB node;
+    int out[100];
+    jrb_traverse(node, g.vertices) {
+        int key = jval_i(node->key);
+        indegree1[key] = indegree(g, key, out);
     }
+    JRB v;
+    Dllist queue;
+    queue = new_dllist();
+    jrb_traverse(v, g.vertices) {
+        if (indegree1[jval_i(v->key)] == 0)
+            dll_append(queue, v->key);
+    }
+    int adjacent[100];
+    int size,i;
+    Dllist u;
+    while(!dll_empty(queue)) {
+        u = dll_first(queue);
+        printf("%d ", jval_i(u->val));
+        size = getAdjacentVertices(g, jval_i(u->val), adjacent);
+        // printf("%d ", size);
+        dll_delete_node(u);
+        // printf("\n");
+        for ( i = 0; i < size; i++){
+            // printf("%d ",  adjacent[i]);
+            indegree1[adjacent[i]]--;
+            if (indegree1[adjacent[i]] == 0) 
+                dll_append(queue, new_jval_i(adjacent[i]));
+        }
+    }
+}
+
 
 
 // void BFS(Graph g, int start, int stop, void (*report)(int)){
@@ -288,6 +305,7 @@ void topologicalSort(Graph g, int* output, int* n)
 // }
 
 int main(){
+    int i;
     Graph g = createGraph();
     addVertex(g, 0, "A");
     addVertex(g, 1, "B");
@@ -297,23 +315,33 @@ int main(){
     addVertex(g, 5, "Y");
     addVertex(g, 5, "F");
     addVertex(g, 6, "G");
-    
+
     addEdge(g, 0, 1);
     addEdge(g, 0, 2);
     addEdge(g, 5, 6);
     addEdge(g, 5, 1);
-    addEdge(g, 6, 5);
     addEdge(g, 3, 4);
     addEdge(g, 2, 4);
-    addEdge(g, 4, 0);
+
 
     print_graph(g);
-    int output[10];
-    indegree(g, 1, output);
+    int output[10], n;
+    // indegree(g, 1, output);
     if (countCycle == 0) 
         printf("It is DAG.\n");
     else
         printf("It is not DAG.\n");
     printf("\n");
     findCycles(g);
+    int size = indegree(g, 4, output);
+    for(i = 0; i < size; i++) {
+        printf("%d ", output[i]);
+    }
+    printf("\n");
+    size = outdegree(g, 3, output);
+    for(i = 0; i < size; i++) {
+        printf("%d ", output[i]);
+    }
+    printf("\n");
+    topologicalSort(g, output, &n);
 }
