@@ -34,7 +34,7 @@ void addEdge(Graph graph, int v1, int v2, double w){
     jrb_insert_int(tree, v2, new_jval_d(w));
 }
 
-double getEdgeValue(Graph graph, int v1, int v2)
+double getEdgeValue(Graph graph, double v1, double v2)
     {
         JRB g = graph.edges;
         JRB node2;
@@ -163,7 +163,7 @@ int shortestPath(Graph graph, int s, int t, int* path, int* length)
         JRB g = graph.vertices;
         double distance[100];
         int parent[100];
-        int visited[100],i;
+        int visited[100],i, u;
         // memset(distance, 1000, 100);
         // memset(parent, -1, 100);
         // memset(visited, 0, 100);
@@ -177,13 +177,22 @@ int shortestPath(Graph graph, int s, int t, int* path, int* length)
         parent[s] = s;
         visited[s] = 1;
         
-        Dllist  queue, node;
+        Dllist  queue, node, ptr;
         queue = new_dllist();
         dll_append(queue, new_jval_i(s));
         while(!dll_empty(queue))
             {
-                node = dll_first(queue);
-                int u = jval_i(node->val);
+                double min = INFINITY;
+                dll_traverse(ptr, queue){
+                    // Lay ra min{distance}
+                    u = jval_i(ptr->val);
+                    if (min > distance[u]){
+                        min = distance[u];
+                        node = ptr;
+                    }
+                }
+                // node = dll_first(queue);
+                u = jval_i(node->val);
                 dll_delete_node(node);
                 int output[100];
                 int out_de = outdegree(graph, u, output);
@@ -193,11 +202,13 @@ int shortestPath(Graph graph, int s, int t, int* path, int* length)
                             {
                                 visited[output[i]] = 1;
                                 dll_append(queue, new_jval_i(output[i]));
+                                // printf("%d\n", distance[output[i]]);
                             }
                         if((getEdgeValue(graph, u, output[i]) + distance[u]) < distance[output[i]])
                             {
                                 distance[output[i]] = getEdgeValue(graph, u, output[i]) + distance[u];
                                 parent[output[i]] = u;
+                                printf("%f\n", distance[output[i]]);
                             }
                     }
             }
@@ -389,18 +400,18 @@ int main(){
     addVertex(g, 5, "F");
     addVertex(g, 6, "G");
 
-    addEdge(g, 0, 1, 1);
-    addEdge(g, 0, 2, 20);
-    addEdge(g, 5, 6, 3);
-    addEdge(g, 5, 1, 40);
-    addEdge(g, 3, 4, 2);
-    addEdge(g, 2, 4, 35);
+    addEdge(g, 0, 1, 1.2);
+    addEdge(g, 0, 2, 20.2);
+    addEdge(g, 5, 6, 3.2);
+    addEdge(g, 5, 1, 40.2);
+    addEdge(g, 3, 4, 2.2);
+    addEdge(g, 2, 4, 35.2);
 
 
     print_graph(g);
 
     size = shortestPath(g, 0, 4, path, &ln);
-    for(i = 0; i < size; i++)
+    for(i = size -1 ; i >= 0; i--)
         printf("%d ", path[i]);
     // printf("%f", getEdgeValue(g,5,6));
 
