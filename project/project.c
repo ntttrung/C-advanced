@@ -4,7 +4,11 @@
 
 typedef struct
     {
-        char id[10];
+        char region[20];
+        char country[20];
+        char item[20];
+        char channel[20], prior[20], ord_date[20], id[20], ship_date[20], sold[20];
+        char price[20], cost[20], revenue[20], tt_cost[20];
         float profit;
     }
 sale_struct;
@@ -59,10 +63,57 @@ void read_csv()
                                 features ++;
                                 tmp = token;
                                 xoakt(tmp);
-                                if(features == 7)
-                                    strcpy(data[count].id, tmp);
-                                else if(features == 14)
-                                    data[count].profit = atof(tmp);
+                                // data[count].index = count;
+                                // if(features == 7)
+                                //     strcpy(data[count].id, tmp);
+                                // else if(features == 14)
+                                //     data[count].profit = atof(tmp);
+                                switch(features)
+                                    {
+                                        case 1:
+                                            strcpy(data[count].region, tmp);
+                                            break;
+                                        case 2:
+                                            strcpy(data[count].country, tmp);
+                                            break;
+                                        case 3:
+                                            strcpy(data[count].item, tmp);
+                                            break;
+                                        case 4:
+                                            strcpy(data[count].channel, tmp);
+                                            break;
+                                        case 5:
+                                            strcpy(data[count].prior, tmp);
+                                            break;
+                                        case 6:
+                                            strcpy(data[count].ord_date, tmp);
+                                            break;
+                                        case 7:
+                                            strcpy(data[count].id, tmp);
+                                            break;
+                                        case 8:
+                                            strcpy(data[count].ship_date, tmp);
+                                            break;
+                                        case 9:
+                                            strcpy(data[count].sold, tmp);
+                                            break;
+                                        case 10:
+                                            strcpy(data[count].price, tmp);
+                                            break;
+                                        case 11:
+                                            strcpy(data[count].cost, tmp);
+                                            break;
+                                        case 12:
+                                            strcpy(data[count].revenue, tmp);
+                                            break;
+                                        case 13:
+                                            strcpy(data[count].tt_cost, tmp);
+                                            break;
+                                        case 14:
+                                            data[count].profit = atof(tmp);
+                                            break;
+
+                                    }
                                 token = strtok(NULL, ",");
                             }
                     }
@@ -111,9 +162,11 @@ void write_to_file(char const *fileName)
         exit(1);
     }
   int i;
-  for(i = 1; i<= count; i++)
+//   for(i = 1; i<= count; i++)
+  for(i = count; i >= 1; i--)
     // you might want to check for out-of-disk-space here, too 
-    fprintf(f, "%d,%s,%f\n", i, data[i].id, data[i].profit);  
+    // fprintf(f, "%d\n", data[i].index); 
+    fprintf(f,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%f\n",data[i].region,data[i].country,data[i].item,data[i].channel,data[i].prior,data[i].ord_date,data[i].id,data[i].ship_date,data[i].sold,data[i].price,data[i].cost,data[i].revenue,data[i].tt_cost,data[i].profit); 
   fclose(f); 
 } 
 

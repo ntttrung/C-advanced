@@ -4,6 +4,7 @@
 #include<string.h>
 #include "jrb.h"
 #include "dllist.h"
+#include "jval.h"
 
 #define INFINITIVE_VALUE 10000000
 
@@ -22,47 +23,6 @@ int outdegree(Graph graph, int v, int* output);
 double shortestPath(Graph graph, int s, int t, int *path, int *length);
 void dropGraph(Graph graph);
 
-int main(){
-    Graph g = createGraph();
-    addVertex(g, 1, "V1");
-    addVertex(g, 2, "V2");
-    addVertex(g, 3, "V3");
-    addVertex(g, 4, "V4");
-    addVertex(g, 5, "V5");
-    addVertex(g, 6, "V6");
-    addVertex(g, 7, "V7");
-    addVertex(g, 8, "V8");
-    addEdge(g, 1, 2, 9);
-    addEdge(g, 1, 6, 14);
-    addEdge(g, 1, 7, 15);
-    addEdge(g, 2, 3, 24);
-    addEdge(g, 3, 5, 2);
-    addEdge(g, 3, 8, 19);
-    addEdge(g, 4, 3, 6);
-    addEdge(g, 4, 8, 6);
-    addEdge(g, 5, 4, 11);
-    addEdge(g, 5, 8, 16);
-    addEdge(g, 6, 3, 18);
-    addEdge(g, 6, 5, 30);
-    addEdge(g, 6, 7, 5);
-    addEdge(g, 7, 5, 20);
-    addEdge(g, 7, 8, 44);
-    
-    int s, t, path[100], length;
-    s = 1;
-    t = 8;
-    double distance_s_t = shortestPath(g, s, t, path, &length);
-    if (distance_s_t != INFINITIVE_VALUE){
-        printf("Shortest distance from s --> t: %lf\n", distance_s_t);
-        printf("Path: ");
-        for (int i=length-1; i>=0; i--){
-            printf("%d ", path[i]);
-        }
-        printf("\n");
-    }else{
-        printf("No Path from s --> t\n");
-    }
-}
 
 Graph createGraph(){
     Graph g;
@@ -153,9 +113,9 @@ int outdegree(Graph graph, int v, int* output){
 double shortestPath(Graph graph, int s, int t, int *path, int *length){
     // Khoi tao cac distance = 0
     double distance[1000], min;
-    int previous[1000], u, visit[1000];
+    int previous[1000], u, visit[1000], i;
     
-    for (int i=0; i<1000; i++){
+    for (i=0; i<1000; i++){
         distance[i] = INFINITIVE_VALUE;
         visit[i] = 0;
         previous[i] = 0;
@@ -183,9 +143,9 @@ double shortestPath(Graph graph, int s, int t, int *path, int *length){
         u = jval_i(node->val);
         printf("%d ", u);
         dll_delete_node(node);
-        int output[100];
+        int output[100], i;
         int size = outdegree(graph,u,output);
-        for(int i = 0; i < size; i++)
+        for(i = 0; i < size; i++)
         {
             if(visit[output[i]] == 0)
             {
@@ -212,4 +172,46 @@ double shortestPath(Graph graph, int s, int t, int *path, int *length){
     }
     *length = ln;
     return distance[t];
+}
+
+int main(){
+    Graph g = createGraph();
+    addVertex(g, 1, "V1");
+    addVertex(g, 2, "V2");
+    addVertex(g, 3, "V3");
+    addVertex(g, 4, "V4");
+    addVertex(g, 5, "V5");
+    addVertex(g, 6, "V6");
+    addVertex(g, 7, "V7");
+    addVertex(g, 8, "V8");
+    addEdge(g, 1, 2, 9);
+    addEdge(g, 1, 6, 14);
+    addEdge(g, 1, 7, 15);
+    addEdge(g, 2, 3, 24);
+    addEdge(g, 3, 5, 2);
+    addEdge(g, 3, 8, 19);
+    addEdge(g, 4, 3, 6);
+    addEdge(g, 4, 8, 6);
+    addEdge(g, 5, 4, 11);
+    addEdge(g, 5, 8, 16);
+    addEdge(g, 6, 3, 18);
+    addEdge(g, 6, 5, 30);
+    addEdge(g, 6, 7, 5);
+    addEdge(g, 7, 5, 20);
+    addEdge(g, 7, 8, 44);
+    
+    int s, t, path[100], length, i;
+    s = 1;
+    t = 8;
+    double distance_s_t = shortestPath(g, s, t, path, &length);
+    if (distance_s_t != INFINITIVE_VALUE){
+        printf("Shortest distance from s --> t: %lf\n", distance_s_t);
+        printf("Path: ");
+        for (i=length-1; i>=0; i--){
+            printf("%d ", path[i]);
+        }
+        printf("\n");
+    }else{
+        printf("No Path from s --> t\n");
+    }
 }
