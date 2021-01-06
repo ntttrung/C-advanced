@@ -10,6 +10,7 @@ typedef struct
         char channel[20], prior[20], ord_date[20], id[20], ship_date[20], sold[20];
         char price[20], cost[20], revenue[20], tt_cost[20];
         float profit;
+        int index;
     }
 sale_struct;
 
@@ -63,7 +64,7 @@ void read_csv()
                                 features ++;
                                 tmp = token;
                                 xoakt(tmp);
-                                // data[count].index = count;
+                                data[count].index = count;
                                 // if(features == 7)
                                 //     strcpy(data[count].id, tmp);
                                 // else if(features == 14)
@@ -166,7 +167,7 @@ void write_to_file(char const *fileName)
   for(i = count; i >= 1; i--)
     // you might want to check for out-of-disk-space here, too 
     // fprintf(f, "%d\n", data[i].index); 
-    fprintf(f,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%f\n",data[i].region,data[i].country,data[i].item,data[i].channel,data[i].prior,data[i].ord_date,data[i].id,data[i].ship_date,data[i].sold,data[i].price,data[i].cost,data[i].revenue,data[i].tt_cost,data[i].profit); 
+    fprintf(f,"%d\n",data[i].index); 
   fclose(f); 
 } 
 
@@ -177,5 +178,5 @@ int main()
         printf("\n\n");
         quicksort_2_way(data,1,10000);
         // output(data);
-        write_to_file("output_data.csv");
+        write_to_file("output_data.txt");
     }
