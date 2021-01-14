@@ -9,6 +9,8 @@
 #define INFINITIVE_VALUE 10000000
 
 int countCycle = 0;
+int countRoute = 0;
+int countVertex;
 int total_vertex = 0;
 int matrix1[10][10];
 int matrix2[10][10];
@@ -357,9 +359,9 @@ void menu()
         printf("-----------------------MENU------------------------------\n");
         printf("1. Read data\n");
         printf("2. Print adjacent list\n");
-        printf("3. Output\n");
-        printf("4. Shortest path\n");
-        printf("5. Walking path\n");
+        printf("3. Shortest path\n");
+        printf("4. Walking path\n");
+        printf("5. Find all path\n");
         printf("6. Exit\n");
     }
 void ReadData(Graph g1, Graph g2)
@@ -409,7 +411,7 @@ void print_adjacent_matrix(Graph g, int matrix[10][10])
         
     }
 
-void print_adjacent_list(Graph graph)
+void print_adjacent_list(int matrix[10][10])
     {
         int i, j;
         for(i = 1; i <= total_vertex; i++)
@@ -417,73 +419,145 @@ void print_adjacent_list(Graph graph)
                 printf("Castle %d: ",i);
                 for(j = total_vertex; j >= 1; j--)
                     {
-                        if(matrix[i][j] == 1 && i != j)
+                        if(matrix[i][j] != 0 && i != j)
                             printf("%d\t",j);
                     }
                 printf("\n");
             }
     }
 
-void print_walking_castle(Graph graph)
-    {
-        int output[10];
-        int result[total_vertex + 2];
-        int i, j;
-        for(i = 1; i <= total_vertex; i++)
-            result[i] = 1;
-        for(i = 1; i <= total_vertex; i++)
-            for(j = 1; j <= total_vertex; j++)
+int shortestPath1(Graph graph, Graph g, int s, int t, int *path, int *length){
+    // Khoi tao cac distance = 0
+    int distance[1000], min;
+    int time[1000];
+    int previous[1000], u, visit[1000], i;
+    
+    for (i=0; i<1000; i++){
+        distance[i] = INFINITIVE_VALUE;
+        time[i] = INFINITIVE_VALUE;
+        visit[i] = 0;
+        previous[i] = 0;
+    }
+    distance[s] = 0;
+    time[s] = 0;
+    previous[s] = s;
+    visit[s] = 1;
+    
+    Dllist ptr, queue, node;
+    queue = new_dllist();
+    dll_append(queue, new_jval_i(s));
+    
+    // Duyet Queue
+    while (!dll_empty(queue)){
+        min = INFINITIVE_VALUE;
+        dll_traverse(ptr, queue){
+            // Lay ra min{distance}
+            u = jval_i(ptr->val);
+            if (min > distance[u]){
+                min = distance[u];
+                node = ptr;
+            }
+        }
+        
+        u = jval_i(node->val);
+        // printf("%d ", u);
+        dll_delete_node(node);
+        int output[100], i;
+        int size = outdegree(graph,u,output);
+        for(i = 0; i < size; i++)
+        {
+            // if(getEdgeValue(graph, u, output[i]) >= 50)
                 {
-                    if((hasEdge(graph, j, i) == 1) && (getEdgeValue(graph, j, i) < 50) && (i != j))
-                        {
-                            result[i] = 0;
-                            break;
-                        }
+                     if(visit[output[i]] == 0)
+                    {
+                        visit[output[i]] = 1;
+                        dll_append(queue, new_jval_i(output[i]));
+                    }
+                    if(((getEdgeValue(graph, u, output[i]) + distance[u]) < distance[output[i]]) || 
+                    (((getEdgeValue(graph, u, output[i]) + distance[u]) == distance[output[i]]) && (getEdgeValue(g, u, output[i])) + time[u] < time[output[i]]))
+                    {
+                        distance[output[i]] = distance[u] + getEdgeValue(graph, u , output[i]);
+                        time[output[i]] = time[u] + getEdgeValue(g, u, output[i]);
+                        previous[output[i]] = u;
+                    }
                 }
-        for(i = 1; i <= total_vertex; i++)
-            if(result[i] == 1)
-                printf("%d\t", i);
-        printf("\n");
+        }
     }
-
-void indegree_list(Graph g)
+    int current = t;
+    int ln = 0;
+    path[0] = t;
+    while(current!=s)
     {
-        int i, result[10], output[10];
-        for(i = 1; i <= total_vertex; i++)
-            result[i] = indegree(g, i, output);
-        int max = result[1];
-        for(i = 1; i <= total_vertex; i++)
-            if(result[i] > max)
-                max = result[i];
-        for(i = 1; i <= total_vertex; i++)
-            if(result[i] == max)
-                printf("%d\t", i);
-        printf("\n");
+        ln++;
+        current = previous[current];
+        path[ln] = current;
+        if(ln > 100) break;
     }
-void short_path(Graph g)
+    *length = ln;
+    return distance[t];
+}
+
+void short_path(Graph g1, Graph g2)
     {
         int s, t, i;
         printf("Enter start: ");
         scanf("%d", &s);
-        if(jrb_find_int(g.edges, s) == NULL)
+        if(jrb_find_int(g1.edges, s) == NULL)
             {
                 printf("ROUTE NOT FOUND\n", s);
                 return -1;
             }
         printf("Enter terminate: ");
         scanf("%d", &t);
-        if(jrb_find_int(g.edges, t) == NULL)
+        if(jrb_find_int(g1.edges, t) == NULL)
             {
                 printf("ROUTE NOT FOUND\n", t);
                 return -1;
             }
-        int path[10];
+        int path[101];
         int* len;
-        int ln = shortestPath(g, s, t, path, &len);
-        printf("%d\n", ln);
-        for(i = len; i >= 0; i--)
-            printf("%d\t", path[i]);
-        printf("\n");
+        int ln = shortestPath1(g1, g2, s, t, path, &len);
+        if(ln == INFINITIVE_VALUE)
+            printf("ROUTE NOT FOUND\n");
+        else 
+            {
+                printf("%d\n", ln);
+                for(i = len; i >= 0; i--)
+                    printf("%d\t", path[i]);
+                printf("\n");
+            }
+
+    }
+
+void walking_path(Graph g1)
+    {
+        int s, t, i;
+        printf("Enter start: ");
+        scanf("%d", &s);
+        if(jrb_find_int(g1.edges, s) == NULL)
+            {
+                printf("ROUTE NOT FOUND\n", s);
+                return -1;
+            }
+        printf("Enter terminate: ");
+        scanf("%d", &t);
+        if(jrb_find_int(g1.edges, t) == NULL)
+            {
+                printf("ROUTE NOT FOUND\n", t);
+                return -1;
+            }
+        int path[101];
+        int* len;
+        int ln = shortestPath2(g1, s, t, path, &len);
+        if(ln == INFINITIVE_VALUE)
+            printf("ROUTE NOT FOUND\n");
+        else 
+            {
+                printf("%d\n", ln);
+                for(i = len; i >= 0; i--)
+                    printf("%d\t", path[i]);
+                printf("\n");
+            }
 
     }
 
@@ -531,11 +605,9 @@ int shortestPath2(Graph graph, int s, int t, int *path, int *length){
                         visit[output[i]] = 1;
                         dll_append(queue, new_jval_i(output[i]));
                     }
-                    if(((getEdgeValue(graph, u, output[i]) + distance[u])
-                    < distance[output[i]]) && getEdgeValue(graph, u, output[i]) >= 50)
+                    if(((getEdgeValue(graph, u, output[i]) + distance[u]) < distance[output[i]]))
                     {
-                        distance[output[i]] = distance[u] +
-                        getEdgeValue(graph, u , output[i]);
+                        distance[output[i]] = distance[u] + getEdgeValue(graph, u , output[i]);
                         previous[output[i]] = u;
                     }
                 }
@@ -549,37 +621,81 @@ int shortestPath2(Graph graph, int s, int t, int *path, int *length){
         ln++;
         current = previous[current];
         path[ln] = current;
+        if(ln > 100) break;
     }
     *length = ln;
     return distance[t];
 }
 
-void short_path2(Graph g)
-    {
-        int s, t, i;
-        printf("Enter start: ");
-        scanf("%d", &s);
-        if(jrb_find_int(g.edges, s) == NULL)
-            {
-                printf("ROUTE NOT FOUND\n", s);
-                return -1;
-            }
-        printf("Enter terminate: ");
-        scanf("%d", &t);
-        if(jrb_find_int(g.edges, t) == NULL)
-            {
-                printf("ROUTE NOT FOUND\n", t);
-                return -1;
-            }
-        int path[10];
-        int* len;
-        int ln = shortestPath2(g, s, t, path, &len);
-        printf("%d\n", ln);
-        for(i = len; i >= 0; i--)
-            printf("%d\t", path[i]);
-        printf("\n");
-
+void printAllPaths(Graph distanceGraph, Graph timeGraph) {
+    int s;
+    int t;
+    
+    countRoute = 0;
+    printf("Input start castle: ");
+    scanf("%d", &s);
+    printf("Input destination castle: ");
+    scanf("%d", &t);
+    int visited[total_vertex + 1];
+    int i;
+    for (i = 0; i < total_vertex + 1; i++) {
+        visited[i] = 0;
     }
+    Dllist currentpath;
+    currentpath = new_dllist();
+    dll_append(currentpath, new_jval_i(s));
+    dfs(distanceGraph, timeGraph, s, t, visited, currentpath);
+    if (countRoute == 0) {
+        printf("ROUTE NOT FOUND.\n");
+    }
+}
+
+int dfs(Graph distanceGraph, Graph timeGraph, int s, int t, int visited[], Dllist currentpath) {
+    int distance, time;
+    int u;
+    Dllist ptr, node;
+    if (s == t) {
+        distance = 0;
+        time = 0;
+        printf("-----------\n");
+        printf("Path %d: ", countRoute + 1);
+        dll_traverse(ptr, currentpath){
+            u = jval_i(ptr->val);
+            printf("%-3d", u);
+        }
+        printf("\n");
+        dll_traverse(ptr, currentpath){
+            u = jval_i(ptr->val);
+            if (u != t) {
+                distance += getEdgeValue(distanceGraph, u, jval_i(dll_next(ptr)->val));
+                time += getEdgeValue(timeGraph, u, jval_i(dll_next(ptr)->val));
+            }
+        }
+        printf("Distance: %d.\n", distance);
+        printf("Time: %d.\n", time);
+        countRoute++;
+        return 1;
+    }
+    visited[s] = 1;
+    int size, adj[100];
+    size = outdegree(distanceGraph, s, adj);
+    int i;
+    for (i = 0; i < size; i++) {
+        if (!visited[adj[i]]) {
+            dll_append(currentpath, new_jval_i(adj[i]));
+            dfs(distanceGraph, timeGraph, adj[i], t, visited, currentpath);
+            dll_traverse(ptr, currentpath){
+                u = jval_i(ptr->val);
+                if (u == adj[i]) {
+                    node = ptr;
+                }
+            }
+            dll_delete_node(node);
+        }
+    }
+    visited[s] = 0;
+}
+
 int main(){
 
     int op;
@@ -600,26 +716,25 @@ int main(){
                     case 1:
                         system("cls");
                         ReadData(g1, g2);
-                        print_adjacent_matrix(g1);
+                        print_adjacent_matrix(g1, matrix1);
                         printf("\n");
-                        print_adjacent_matrix(g2);
+                        print_adjacent_matrix(g2, matrix2);
                         break;
                     case 2:
                         system("cls");
-                        print_adjacent_list(g1);
+                        print_adjacent_list(matrix1);
                         break;
                     case 3:
                         system("cls");
-                        print_walking_castle(g);
-                        indegree_list(g);
+                        short_path(g1, g2);
                         break;
                     case 4:
                         system("cls");
-                        short_path(g);
+                        walking_path(g2);
                         break;
                     case 5:
                         system("cls");
-                        short_path2(g);
+                        printAllPaths(g1, g2);
                         break;
                 }
         }
